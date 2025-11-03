@@ -31,13 +31,13 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
 
       // Fetch the user's collection count for that set
       const collectionRes = await fetch(
-        `/api/frontend/getcollections/name/${setName}?userid=${userId}&name=${setName}`
+        `/api/frontend/getcollections/${setName}?userid=${userId}&name=${setName}`
       );
       const collectionData = await collectionRes.json();
-      if (collectionData.data?.length > 0) {
-        console.log(collectionData.data[0], 11);
-
-        setCollectionCount(JSON.parse(collectionData.data[0].meta_value) || []);
+      if (collectionData.data) {
+        setCollectionCount(JSON.parse(collectionData.data.meta_value) || []);
+      } else {
+        setCollectionCount([]);
       }
     } catch (err) {
       console.error("Failed to fetch cards or collection:", err);
@@ -60,11 +60,10 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
             `/api/frontend/getcollections/name/${currentSet}?userid=${userId}&name=${currentSet}`
           );
           const data = await res.json();
-          console.log(data);
-          if (data.data?.length > 0) {
-            console.log(data.data[0], 11);
-
-            setCollectionCount(JSON.parse(data.data[0].meta_value) || []);
+          if (data.data) {
+            setCollectionCount(JSON.parse(data.data.meta_value) || []);
+          } else {
+            setCollectionCount([]);
           }
         } catch (err) {
           console.error("Failed to fetch initial collection count:", err);
@@ -72,8 +71,6 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
       })();
     }
   }, [currentSet, userId]);
-
-  console.log(collectionCount, "collectionCount");
 
   // Close dropdown on click outside
   useEffect(() => {
