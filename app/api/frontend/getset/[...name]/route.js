@@ -46,7 +46,7 @@ export async function GET(req) {
 
     // Serve stale cache if available
     if (cached) {
-      return new Response(JSON.stringify({ client: cached }), {
+      return new Response(JSON.stringify({ data: cached }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });

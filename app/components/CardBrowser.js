@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import CardItem from "./CardItem";
 
-export default function CardBrowser({ initialCards, initialSet }) {
+export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
   const [cards, setCards] = useState(initialCards);
   const [currentSet, setCurrentSet] = useState(initialSet);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [collectionCount, setCollectionCount] = useState([]);
   const dropdownRef = useRef(null);
 
   const sets = [
@@ -21,15 +22,27 @@ export default function CardBrowser({ initialCards, initialSet }) {
     setLoading(true);
 
     try {
-      const res = await fetch(
+      // Fetch the cards (your existing API)
+      const cardRes = await fetch(
         `/api/frontend/getset/${setName}/?name=${setName}`
       );
-      const data = await res.json();
-      console.log(data, `/api/frontend/getset/${setName}/?name=${setName}`);
-      setCards(data.data || []);
+      const cardData = await cardRes.json();
+      setCards(cardData.data || []);
+
+      // Fetch the user's collection count for that set
+      const collectionRes = await fetch(
+        `/api/frontend/getcollections/name/${setName}?userid=${userId}&name=${setName}`
+      );
+      const collectionData = await collectionRes.json();
+      if (collectionData.data?.length > 0) {
+        console.log(collectionData.data[0], 11);
+
+        setCollectionCount(JSON.parse(collectionData.data[0].meta_value) || []);
+      }
     } catch (err) {
-      console.error("Failed to fetch cards for", setName, err);
+      console.error("Failed to fetch cards or collection:", err);
       setCards([]);
+      setCollectionCount([]);
     } finally {
       setLoading(false);
     }
@@ -37,6 +50,30 @@ export default function CardBrowser({ initialCards, initialSet }) {
 
   const currentLabel =
     sets.find((s) => s.id === currentSet)?.label || "Select Set";
+
+  // Load initial collection count when component mounts
+  useEffect(() => {
+    if (currentSet) {
+      (async () => {
+        try {
+          const res = await fetch(
+            `/api/frontend/getcollections/name/${currentSet}?userid=${userId}&name=${currentSet}`
+          );
+          const data = await res.json();
+          console.log(data);
+          if (data.data?.length > 0) {
+            console.log(data.data[0], 11);
+
+            setCollectionCount(JSON.parse(data.data[0].meta_value) || []);
+          }
+        } catch (err) {
+          console.error("Failed to fetch initial collection count:", err);
+        }
+      })();
+    }
+  }, [currentSet, userId]);
+
+  console.log(collectionCount, "collectionCount");
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -52,16 +89,14 @@ export default function CardBrowser({ initialCards, initialSet }) {
   return (
     <div className="w-4/5 h-[calc(100vh-7em)] overflow-scroll">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-white flex border-b border-gray-300 shadow-md py-4 px-8 justify-between items-center">
+      <div className="sticky top-0 z-10 bg-white flex border-b border-gray-300 shadow-md py-2 px-8 justify-between items-center">
         {/* Custom Dropdown */}
         <div ref={dropdownRef} className="relative">
           <button
             onClick={() => setOpen((prev) => !prev)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50"
+            className="flex items-center gap-2 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50"
           >
             <span className="text-gray-800">{currentLabel}</span>
-
-            {/* ▼ Chevron SVG */}
             <svg
               className={`w-4 h-4 text-gray-500 transition-transform ${
                 open ? "rotate-180" : ""
@@ -80,9 +115,8 @@ export default function CardBrowser({ initialCards, initialSet }) {
             </svg>
           </button>
 
-          {/* Dropdown menu */}
           {open && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-20 overflow-hidden">
+            <div className="absolute left-0 mt-2 w-46 bg-white border border-gray-200 rounded-md shadow-lg z-20 overflow-hidden">
               {sets.map((set) => {
                 const isActive = currentSet === set.id;
                 return (
@@ -94,8 +128,6 @@ export default function CardBrowser({ initialCards, initialSet }) {
                     }`}
                   >
                     <span>{set.label}</span>
-
-                    {/* ✓ Checkmark SVG */}
                     {isActive && (
                       <svg
                         className="w-4 h-4 text-gray-700"
@@ -119,15 +151,23 @@ export default function CardBrowser({ initialCards, initialSet }) {
 
         {/* Card Count */}
         <div className="text-gray-600 text-sm">
-          {loading ? "Loading..." : `${cards.length} cards`}
+          <span className="inline-block mr-2">{collectionCount.length}</span>
+          <span className="inline-block mr-2">/</span>
+          {`${cards.length} cards`}
         </div>
       </div>
 
       {/* Cards Grid */}
       <div className="grid grid-cols-5">
-        {cards.map((card) => (
-          <CardItem key={card.details.id} details={card.details} />
-        ))}
+        {loading ? (
+          <div className="col-span-5 text-center py-10 text-gray-500">
+            Loading...
+          </div>
+        ) : (
+          cards.map((card) => (
+            <CardItem key={card.details.id} details={card.details} />
+          ))
+        )}
       </div>
     </div>
   );
