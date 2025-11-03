@@ -6,7 +6,7 @@ import CardItem from "./CardItem";
 export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
   const [cards, setCards] = useState(initialCards);
   const [currentSet, setCurrentSet] = useState(initialSet);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [collectionCount, setCollectionCount] = useState([]);
   const dropdownRef = useRef(null);
