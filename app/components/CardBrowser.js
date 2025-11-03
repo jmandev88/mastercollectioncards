@@ -153,7 +153,7 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
         {/* Card Count */}
         <div className="text-gray-600 text-sm">
           <span className="inline-block mr-2">
-            {loading ? "Loading..." : collectionCount.length}
+            {loading ? "..." : collectionCount.length}
           </span>
           <span className="inline-block mr-2">/</span>
           {`${cards.length} cards`}
