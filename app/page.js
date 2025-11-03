@@ -52,7 +52,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchCards() {
       try {
-        const res = await fetch(`/api/frontend/getset/base1/?name=base1`);
+        const res = await fetch(`/api/frontend/getset/me1/?name=me1`);
         const data = await res.json();
         console.log(data, "dd");
         setCards(data.data || []);
