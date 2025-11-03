@@ -3,26 +3,72 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useExtractColors } from "react-extract-colors";
+
+// 🔹 Child component — safe to call hook here
+function CardItem({ details }) {
+  const { dominantColor, lighterColor, darkerColor } = useExtractColors(
+    details.images?.small
+  );
+
+  const hoverBg = lighterColor || "rgba(0,0,0,0.05)";
+  const hoverBorder = darkerColor || "#ccc";
+
+  return (
+    <Link
+      key={details.images?.small}
+      href="#"
+      style={{
+        "--hover-bg": hoverBg || "rgba(0,0,0,0.05)",
+        "--hover-border": hoverBorder || "#000",
+      }}
+      className="relative border border-gray-300 p-8 border-l-transparent border-t-transparent flex items-center justify-center 
+                             transition-all duration-200 ease-out hover:[background-color:var(--hover-bg)] hover:[border-color:var(--hover-border)]"
+    >
+      <Image
+        src={details.images?.small}
+        alt={details.name}
+        className="object-contain"
+        width={150}
+        height={200}
+      />
+      <Image
+        src={details.set.images?.logo}
+        alt="Card Logo"
+        className="absolute bottom-2 left-2 h-8 object-contain"
+        width={150}
+        height={200}
+      />
+    </Link>
+  );
+}
 
 export default function Home() {
   const pathname = usePathname();
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // extract colors for each placeholder
-  const imgPaths = [
-    "/placeholders/1.png",
-    "/placeholders/2.png",
-    "/placeholders/3.png",
-    "/placeholders/4.png",
-    "/placeholders/5.png",
-    "/placeholders/6.png",
-    "/placeholders/7.png",
-    "/placeholders/8.png",
-  ];
+  useEffect(() => {
+    async function fetchCards() {
+      try {
+        const res = await fetch(`/api/frontend/getset/base1/?name=base1`);
+        const data = await res.json();
+        console.log(data, "dd");
+        setCards(data.data || []);
+      } catch (err) {
+        console.error("Failed to load cards", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCards();
+  }, []);
 
-  // run hook for each image (you can memoize or map)
-  const colors = imgPaths.map((path) => useExtractColors(path));
-  console.log(colors);
+  if (loading) {
+    return <div className="p-8 text-gray-600">Loading cards...</div>;
+  }
+
   return (
     <>
       {/* Header */}
@@ -37,7 +83,7 @@ export default function Home() {
 
       <main className="flex">
         {/* Sidebar */}
-        <div className="w-1/5 h-[calc(100vh-7em)] min-h-[calc(100vh-7em)] border-r border-gray-300">
+        <div className="w-1/5 h-[calc(100vh-7em)] border-r border-gray-300">
           <nav>
             <Link
               href="/"
@@ -73,38 +119,11 @@ export default function Home() {
         </div>
 
         {/* Cards Grid */}
-        <div className="w-4/5 h-[calc(100vh-7em)] min-h-[calc(100vh-7em)] overflow-scroll">
+        <div className="w-4/5 h-[calc(100vh-7em)] overflow-scroll">
           <div className="grid grid-cols-5">
-            {imgPaths.map((path, i) => {
-              const { dominantColor, lighterColor, darkerColor } = colors[i];
-              return (
-                <Link
-                  key={path}
-                  href="#"
-                  style={{
-                    "--hover-bg": lighterColor || "rgba(0,0,0,0.05)",
-                    "--hover-border": lighterColor || "#000",
-                  }}
-                  className="relative border border-gray-300 p-8 border-l-transparent border-t-transparent flex items-center justify-center 
-                             transition-all duration-200 ease-out hover:[background-color:var(--hover-bg)] hover:[border-color:var(--hover-border)]"
-                >
-                  <Image
-                    src={path}
-                    alt={`Card ${i + 1}`}
-                    className="object-contain"
-                    width={150}
-                    height={200}
-                  />
-                  <Image
-                    src={`/placeholders/logo-${(i % 4) + 1}.png`}
-                    alt="Card Logo"
-                    className="absolute bottom-2 left-2 h-8 object-contain"
-                    width={150}
-                    height={200}
-                  />
-                </Link>
-              );
-            })}
+            {cards.map((card) => (
+              <CardItem key={card.details.id} details={card.details} />
+            ))}
           </div>
         </div>
       </main>

@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres"; // or your own Postgres pool if not using Vercel
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(
+  "postgresql://neondb_owner:npg_8eHU7FbVTpvD@ep-rapid-pond-ahorbczd-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require"
+);
 
 export async function GET() {
-  const sql = neon(process.env.DATABASE_URL);
   try {
     // Fetch Pokémon TCG sets
     const response = await fetch("https://api.pokemontcg.io/v2/sets", {
@@ -23,22 +26,31 @@ export async function GET() {
       throw new Error("Invalid response format: expected an array in data");
     }
 
+    const today = new Date().toISOString().split("T")[0]; // e.g. "2025-11-03"
     const inserted = [];
+    const skipped = [];
 
-    // Loop through each set and insert as JSONB
     for (const set of sets) {
-      const result = await sql`
-        INSERT INTO pokemon_sets (detail)
-        VALUES (${JSON.stringify(set)}::jsonb)
-        ON CONFLICT DO NOTHING
-        RETURNING id
-      `;
-      inserted.push(result.rows[0]?.id || null);
+      // Normalize date from "YYYY/MM/DD HH:mm:ss" → "YYYY-MM-DD"
+      const updatedDate = set.updatedAt?.split(" ")[0]?.replace(/\//g, "-");
+      // Only insert/update if the date matches today
+      if (updatedDate === today) {
+        // const result = await sql`
+        //     INSERT INTO sets (set_id, details)
+        //     VALUES (${set.id}, ${JSON.stringify(set)}::jsonb)
+        //     RETURNING id;
+        //   `;
+        //   // inserted.push(result[0]?.id || null);
+      } else {
+        skipped.push(set.id);
+      }
     }
 
     return NextResponse.json({
       success: true,
       inserted: inserted.filter(Boolean).length,
+      skipped: skipped.length,
+      skipped_ids: skipped,
     });
   } catch (error) {
     console.error("Error inserting sets:", error);
