@@ -4,7 +4,7 @@ import CardBrowser from "./components/CardBrowser";
 
 async function getCards(setName = "me1") {
   const res = await fetch(
-    `http://localhost:3000/api/frontend/getset/${setName}/?name=${setName}`,
+    `${process.env.NEXT_PUBLIC_URL}/api/frontend/getset/${setName}/?name=${setName}`,
     { cache: "no-store" }
   );
   const data = await res.json();
