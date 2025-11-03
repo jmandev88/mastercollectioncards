@@ -53,6 +53,8 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
 
   // Load initial collection count when component mounts
   useEffect(() => {
+    setLoading(true);
+
     if (currentSet) {
       (async () => {
         try {
@@ -67,6 +69,8 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
           }
         } catch (err) {
           console.error("Failed to fetch initial collection count:", err);
+        } finally {
+          setLoading(false);
         }
       })();
     }
@@ -148,7 +152,9 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
 
         {/* Card Count */}
         <div className="text-gray-600 text-sm">
-          <span className="inline-block mr-2">{collectionCount.length}</span>
+          <span className="inline-block mr-2">
+            {loading ? "Loading..." : collectionCount.length}
+          </span>
           <span className="inline-block mr-2">/</span>
           {`${cards.length} cards`}
         </div>
