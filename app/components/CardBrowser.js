@@ -6,7 +6,7 @@ import CardItem from "./CardItem";
 export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
   const [cards, setCards] = useState(initialCards);
   const [currentSet, setCurrentSet] = useState(initialSet);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [collectionCount, setCollectionCount] = useState([]);
   const dropdownRef = useRef(null);
@@ -53,8 +53,6 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
 
   // Load initial collection count when component mounts
   useEffect(() => {
-    setLoading(true);
-
     if (currentSet) {
       (async () => {
         try {
@@ -69,8 +67,6 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
           }
         } catch (err) {
           console.error("Failed to fetch initial collection count:", err);
-        } finally {
-          setLoading(false);
         }
       })();
     }
@@ -86,6 +82,15 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
+
+  function handleCollectionChange(cardId, action) {
+    setCollectionCount((prev) => {
+      const updated = [...prev];
+      if (action === "add" && !updated.includes(cardId)) updated.push(cardId);
+      if (action === "remove") return updated.filter((id) => id !== cardId);
+      return updated;
+    });
+  }
 
   return (
     <div className="w-4/5 h-[calc(100vh-7em)] overflow-scroll">
@@ -168,7 +173,14 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
           </div>
         ) : (
           cards.map((card) => (
-            <CardItem key={card.details.id} details={card.details} />
+            <CardItem
+              active={collectionCount}
+              key={card.details.id}
+              details={card.details}
+              card_id={card.id}
+              set_id={card.set_id}
+              onCollectionChange={handleCollectionChange}
+            />
           ))
         )}
       </div>

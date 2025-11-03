@@ -4,7 +4,6 @@ const sql = neon(
   "postgresql://neondb_owner:npg_8eHU7FbVTpvD@ep-rapid-pond-ahorbczd-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require"
 );
 
-// simple in-memory cache (keyed by client id)
 let cache = new Map();
 let cacheTimes = new Map();
 const TTL = 60 * 1000; // 1 minute
@@ -57,13 +56,19 @@ export async function GET(req) {
     cache.set(id, rows);
     cacheTimes.set(id, now);
 
-    return new Response(JSON.stringify({ data: rows }), {
+    // 🧩 Include the id field explicitly for clarity
+    const dataWithIds = rows.map((row) => ({
+      id: row.id, // 👈 explicit id
+      details: row, // your card data
+    }));
+
+    return new Response(JSON.stringify({ data: dataWithIds }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Failed to fetch client", error);
-    return new Response(JSON.stringify({ error: "Failed to fetch client" }), {
+    console.error("Failed to fetch cards", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch cards" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
