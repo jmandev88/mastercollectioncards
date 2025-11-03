@@ -72,20 +72,25 @@ export default function CardItem({
         </button>
       )}
 
-      <Image
-        src={details.images?.small}
-        alt={details.name}
-        className="object-contain"
-        width={150}
-        height={200}
-      />
-      <Image
-        src={details.set.images?.logo}
-        alt="Card Logo"
-        className="absolute bottom-2 left-2 h-8 object-contain"
-        width={150}
-        height={200}
-      />
+      {details?.images?.small && (
+        <Image
+          src={details.images.small}
+          alt={details.name || "Card"}
+          className="object-contain"
+          width={150}
+          height={200}
+        />
+      )}
+
+      {details?.set?.images?.logo && (
+        <Image
+          src={details.set.images.logo}
+          alt="Card Logo"
+          className="absolute bottom-2 left-2 h-8 object-contain"
+          width={150}
+          height={200}
+        />
+      )}
     </Link>
   );
 }
