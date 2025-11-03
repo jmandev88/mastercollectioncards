@@ -3,8 +3,19 @@ const nextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    domains: [
-      "images.pokemontcg.io", // 👈 Add this line
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.pokemontcg.io",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "example.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
