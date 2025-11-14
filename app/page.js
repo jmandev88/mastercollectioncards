@@ -1,6 +1,7 @@
 import CardBrowser from "./components/CardBrowser";
 import Header from "./layout/Header";
 import Sidebar from "./layout/Sidebar";
+export const dynamic = "force-dynamic";
 
 async function getCards(setName = "me1") {
   const res = await fetch(

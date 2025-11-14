@@ -1,6 +1,7 @@
 import Header from "../../layout/Header";
 import Sidebar from "../../layout/Sidebar";
 import SingleSetBrowser from "mcc/app/components/SingleSetBrowser";
+export const dynamic = "force-dynamic";
 
 async function getCards(setName) {
   const res = await fetch(

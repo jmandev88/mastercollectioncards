@@ -1,6 +1,7 @@
 import Header from "../layout/Header";
 import Sidebar from "../layout/Sidebar";
 import SetsBrowser from "../components/SetsBrowser";
+export const dynamic = "force-dynamic";
 
 async function getSets() {
   const res = await fetch(
