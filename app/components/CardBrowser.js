@@ -24,7 +24,7 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
     try {
       // Fetch the cards (your existing API)
       const cardRes = await fetch(
-        `/api/frontend/getset/${setName}/?name=${setName}`
+        `/api/frontend/getcards/${setName}/?name=${setName}`
       );
       const cardData = await cardRes.json();
       setCards(cardData.data || []);

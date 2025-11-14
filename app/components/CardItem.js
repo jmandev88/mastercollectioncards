@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useExtractColors } from "react-extract-colors";
 
 export default function CardItem({
-  active,
+  active = [],
   details,
   card_id,
   set_id,
