@@ -8,7 +8,7 @@ export default function SetsBrowser({ sets }) {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white flex border-b border-gray-300 shadow-md py-2 px-8 justify-between items-center">
         {/* Custom Dropdown */}
-        <div className="relative">Lorem</div>
+        <div className="relative text-sm">Lorem</div>
 
         {/* Card Count */}
         <div className="text-gray-600 text-sm">{sets.length} Sets</div>
