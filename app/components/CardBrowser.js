@@ -21,7 +21,14 @@ export default function CardBrowser({
   const router = useRouter();
   const params = useSearchParams();
 
-  // d
+  useEffect(() => {
+    const urlSet = params.get("set");
+    if (urlSet && urlSet !== currentSet) {
+      handleSetChange(urlSet);
+    } else {
+      router.push(`?set=${initialSet}`);
+    }
+  }, []);
 
   const sets = allSets;
 
