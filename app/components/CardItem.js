@@ -76,7 +76,9 @@ export default function CardItem({
         <Image
           src={details.images.small}
           alt={details.name || "Card"}
-          className="object-contain"
+          className={`object-contain ${
+            active.includes(card_id) ? "" : "grayscale opacity-50"
+          }`}
           width={150}
           height={200}
         />
