@@ -15,53 +15,37 @@ export async function GET() {
 
     console.log("Fetching cards updated on:", formattedDate);
 
-    let page = 1;
-    let totalInserted = 0;
+    const page = 1;
     const pageSize = 250; // API max per page (PokémonTCG.io default)
 
-    const response = await fetch("https://api.pokemontcg.io/v2/sets", {
-      headers: {
-        "X-Api-Key": "60dac11b-194d-4f78-bbb8-055adbee3f48",
-      },
-      cache: "no-store",
-    });
-
-    while (true) {
-      // 🔗 Fetch one page of updated cards
-      const response = await fetch(
-        `https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`,
-        {
-          headers: {
-            "X-Api-Key": "60dac11b-194d-4f78-bbb8-055adbee3f48",
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Pokémon TCG API error: ${response.status}`);
+    // 🔗 Fetch one page of updated cards
+    const response = await fetch(
+      `https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`,
+      {
+        headers: {
+          "X-Api-Key": "60dac11b-194d-4f78-bbb8-055adbee3f48",
+        },
+        cache: "no-store",
       }
+    );
 
-      const data = await response.json();
-      const cards = data?.data || [];
+    if (!response.ok) {
+      throw new Error(`Pokémon TCG API error: ${response.status}`);
+    }
 
-      if (cards.length === 0) break;
+    const data = await response.json();
+    const cards = data?.data || [];
+    let totalInserted = 0;
 
-      console.log(`Processing page ${page} (${cards.length} cards)`);
+    console.log(`Processing ${cards.length} cards from page ${page}`);
 
-      // 🗃️ Insert or update cards
-      for (const card of cards) {
-        await sql`
+    // 🗃️ Insert or update cards
+    for (const card of cards) {
+      await sql`
           INSERT INTO cards (set_id, details)
           VALUES (${card.set.id}, ${JSON.stringify(card)}::jsonb)
-          DO UPDATE SET details = EXCLUDED.details;
-        `;
-      }
-
-      // Stop if less than full page (no more pages)
-      if (cards.length < pageSize) break;
-
-      page++;
+      `;
+      totalInserted++;
     }
 
     return NextResponse.json({
