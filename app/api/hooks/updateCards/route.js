@@ -19,6 +19,13 @@ export async function GET() {
     let totalInserted = 0;
     const pageSize = 250; // API max per page (PokémonTCG.io default)
 
+    const response = await fetch("https://api.pokemontcg.io/v2/sets", {
+      headers: {
+        "X-Api-Key": "60dac11b-194d-4f78-bbb8-055adbee3f48",
+      },
+      cache: "no-store",
+    });
+
     while (true) {
       // 🔗 Fetch one page of updated cards
       const response = await fetch(
@@ -45,14 +52,11 @@ export async function GET() {
       // 🗃️ Insert or update cards
       for (const card of cards) {
         await sql`
-          INSERT INTO cards (card_id, details)
-          VALUES (${card.id}, ${JSON.stringify(card)}::jsonb)
-          ON CONFLICT (card_id)
+          INSERT INTO cards (set_id, details)
+          VALUES (${card.set.id}, ${JSON.stringify(card)}::jsonb)
           DO UPDATE SET details = EXCLUDED.details;
         `;
       }
-
-      totalInserted += cards.length;
 
       // Stop if less than full page (no more pages)
       if (cards.length < pageSize) break;
