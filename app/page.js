@@ -11,9 +11,18 @@ async function getCards(setName = "me1") {
   return data.data || [];
 }
 
+async function getSets() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_URL}/api/frontend/getsets`
+  );
+  const data = await res.json();
+  return data.data || [];
+}
+
 export default async function Home() {
   const initialSet = "me1";
   const cards = await getCards(initialSet);
+  const sets = await getSets();
 
   return (
     <>
@@ -22,7 +31,11 @@ export default async function Home() {
         <Sidebar />
 
         {/* Cards Browser */}
-        <CardBrowser initialCards={cards} initialSet={initialSet} />
+        <CardBrowser
+          initialCards={cards}
+          initialSet={initialSet}
+          allSets={sets}
+        />
       </main>
     </>
   );

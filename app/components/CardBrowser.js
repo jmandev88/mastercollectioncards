@@ -3,7 +3,20 @@
 import { useState, useEffect, useRef } from "react";
 import CardItem from "./CardItem";
 
-export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
+async function getSets() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_URL}/api/frontend/getsets`
+  );
+  const data = await res.json();
+  return data.data || [];
+}
+
+export default function CardBrowser({
+  initialCards,
+  initialSet,
+  userId = 1,
+  allSets,
+}) {
   const [cards, setCards] = useState(initialCards);
   const [currentSet, setCurrentSet] = useState(initialSet);
   const [loading, setLoading] = useState(false);
@@ -11,10 +24,12 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
   const [collectionCount, setCollectionCount] = useState([]);
   const dropdownRef = useRef(null);
 
-  const sets = [
-    { id: "me1", label: "Mega Evolution" },
-    { id: "base1", label: "Base Set 1" },
-  ];
+  const sets = allSets;
+
+  // const sets = [
+  //   { id: "me1", label: "Mega Evolution" },
+  //   { id: "base1", label: "Base Set 1" },
+  // ];
 
   const handleSetChange = async (setName) => {
     setOpen(false);
@@ -49,7 +64,7 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
   };
 
   const currentLabel =
-    sets.find((s) => s.id === currentSet)?.label || "Select Set";
+    sets.find((s) => s.set_id === currentSet)?.details.name || "Select Set";
 
   // Load initial collection count when component mounts
   useEffect(() => {
@@ -124,16 +139,16 @@ export default function CardBrowser({ initialCards, initialSet, userId = 1 }) {
           {open && (
             <div className="absolute left-0 mt-2 w-46 bg-white border border-gray-200 rounded-md shadow-lg z-20 overflow-hidden">
               {sets.map((set) => {
-                const isActive = currentSet === set.id;
+                const isActive = currentSet === set.set_id;
                 return (
                   <button
-                    key={set.id}
-                    onClick={() => handleSetChange(set.id)}
+                    key={set.set_id}
+                    onClick={() => handleSetChange(set.set_id)}
                     className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-brand-red-warm hover:text-white ${
                       isActive ? "bg-gray-100 text-gray-900" : "text-gray-700"
                     }`}
                   >
-                    <span>{set.label}</span>
+                    <span>{set.details.name}</span>
                     {isActive && (
                       <svg
                         className="w-4 h-4 text-gray-700"

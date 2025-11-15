@@ -9,7 +9,7 @@ export async function GET(req) {
 
     // 🔢 Read page number from query
     const page = Number(searchParams.get("page") || "1");
-    const pageSize = 100;
+    const pageSize = 250;
 
     // 📅 Optional date override (format: YYYY/MM/DD)
     let formattedDate = searchParams.get("date");
@@ -27,8 +27,8 @@ export async function GET(req) {
 
     console.log(`Fetching cards for ${formattedDate}, page ${page}`);
 
-    const url = `https://api.pokemontcg.io/v2/cards?page=${page}&pageSize=${pageSize}`;
-    // const url = `https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`;
+    // const url = `https://api.pokemontcg.io/v2/cards?page=${page}&pageSize=${pageSize}`;
+    const url = `https://api.pokemontcg.io/v2/cards?q=tcgplayer.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`;
 
     const response = await fetch(url, {
       headers: { "X-Api-Key": process.env.POKEMON_TCG_API_KEY },
@@ -46,13 +46,13 @@ export async function GET(req) {
 
     let totalInserted = 0;
 
-    for (const card of cards) {
-      await sql`
-        INSERT INTO cards (set_id, details)
-        VALUES (${card.set.id}, ${JSON.stringify(card)}::jsonb)
-      `;
-      totalInserted++;
-    }
+    // for (const card of cards) {
+    //   await sql`
+    //     INSERT INTO cards (set_id, details)
+    //     VALUES (${card.set.id}, ${JSON.stringify(card)}::jsonb)
+    //   `;
+    //   totalInserted++;
+    // }
 
     return NextResponse.json({
       success: true,
@@ -60,6 +60,7 @@ export async function GET(req) {
       pageSize,
       totalInserted,
       date: formattedDate,
+      cards: cards,
     });
   } catch (error) {
     console.error("Error updating cards:", error);
