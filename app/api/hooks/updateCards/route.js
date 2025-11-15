@@ -16,7 +16,7 @@ export async function GET() {
     console.log("Fetching cards updated on:", formattedDate);
 
     const page = 1;
-    const pageSize = 250; // API max per page (PokémonTCG.io default)
+    const pageSize = 100; // API max per page (PokémonTCG.io default)
 
     // 🔗 Fetch one page of updated cards
     const response = await fetch(
@@ -30,7 +30,9 @@ export async function GET() {
     );
 
     if (!response.ok) {
-      throw new Error(`Pokémon TCG API error: ${response.status}`);
+      throw new Error(
+        `Pokémon TCG API error: ${response.status}- https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`
+      );
     }
 
     const data = await response.json();
