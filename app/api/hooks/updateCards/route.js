@@ -1,62 +1,68 @@
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(process.env.DATABASE_URL); // use environment variable for safety
+const sql = neon(process.env.DATABASE_URL);
 
-export async function GET() {
+export async function GET(req) {
   try {
-    // 🕒 Get yesterday's date in "YYYY/MM/DD" format (Pokémon API style)
-    const today = new Date();
-    today.setDate(today.getDate() - 1); // move one day back
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    const formattedDate = `${yyyy}/${mm}/${dd}`;
+    const { searchParams } = new URL(req.url);
 
-    console.log("Fetching cards updated on:", formattedDate);
+    // 🔢 Read page number from query
+    const page = Number(searchParams.get("page") || "1");
+    const pageSize = 100;
 
-    const page = 1;
-    const pageSize = 100; // API max per page (PokémonTCG.io default)
+    // 📅 Optional date override (format: YYYY/MM/DD)
+    let formattedDate = searchParams.get("date");
 
-    // 🔗 Fetch one page of updated cards
-    const response = await fetch(
-      `https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`,
-      {
-        headers: {
-          "X-Api-Key": "60dac11b-194d-4f78-bbb8-055adbee3f48",
-        },
-        cache: "no-store",
-      }
-    );
+    // If no custom date provided → use yesterday
+    if (!formattedDate) {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      formattedDate = `${yyyy}/${mm}/${dd}`;
+    }
+
+    console.log(`Fetching cards for ${formattedDate}, page ${page}`);
+
+    const url = `https://api.pokemontcg.io/v2/cards?page=${page}&pageSize=${pageSize}`;
+    // const url = `https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`;
+
+    const response = await fetch(url, {
+      headers: { "X-Api-Key": process.env.POKEMON_TCG_API_KEY },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      throw new Error(
-        `Pokémon TCG API error: ${response.status}- https://api.pokemontcg.io/v2/cards?q=cardmarket.updatedAt:"${formattedDate}"&page=${page}&pageSize=${pageSize}`
-      );
+      throw new Error(`Pokémon API error: ${response.status} - ${url}`);
     }
 
     const data = await response.json();
     const cards = data?.data || [];
+
+    console.log(`Inserting ${cards.length} cards from page ${page}`);
+
     let totalInserted = 0;
 
-    console.log(`Processing ${cards.length} cards from page ${page}`);
-
-    // 🗃️ Insert or update cards
     for (const card of cards) {
       await sql`
-          INSERT INTO cards (set_id, details)
-          VALUES (${card.set.id}, ${JSON.stringify(card)}::jsonb)
+        INSERT INTO cards (set_id, details)
+        VALUES (${card.set.id}, ${JSON.stringify(card)}::jsonb)
       `;
       totalInserted++;
     }
 
     return NextResponse.json({
       success: true,
+      page,
+      pageSize,
       totalInserted,
       date: formattedDate,
     });
   } catch (error) {
-    console.error("Error syncing cards:", error);
+    console.error("Error updating cards:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
