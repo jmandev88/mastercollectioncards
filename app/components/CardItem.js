@@ -71,7 +71,6 @@ export default function CardItem({
           Add
         </button>
       )}
-
       {details?.images?.small && (
         <Image
           src={details.images.small}
