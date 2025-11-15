@@ -3,7 +3,7 @@ import Header from "./layout/Header";
 import Sidebar from "./layout/Sidebar";
 export const dynamic = "force-dynamic";
 
-async function getCards(setName = "me1") {
+async function getCards(setName = "me2") {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_URL}/api/frontend/getcards/${setName}/?name=${setName}`
   );
@@ -20,7 +20,7 @@ async function getSets() {
 }
 
 export default async function Home() {
-  const initialSet = "me1";
+  const initialSet = "me2";
   const cards = await getCards(initialSet);
   const sets = await getSets();
 
