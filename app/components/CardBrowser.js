@@ -206,16 +206,18 @@ export default function CardBrowser({
             Loading...
           </div>
         ) : visibleCards.length > 0 ? (
-          visibleCards.map((card) => (
-            <CardItem
-              active={collectionCount}
-              key={card.details.id}
-              details={card.details}
-              card_id={card.id}
-              set_id={card.set_id}
-              onCollectionChange={handleCollectionChange}
-            />
-          ))
+          visibleCards.map((card) => {
+            return (
+              <CardItem
+                active={collectionCount}
+                key={card.details.id}
+                details={card.details}
+                card_id={card.id}
+                set_id={card.set_id}
+                onCollectionChange={handleCollectionChange}
+              />
+            );
+          })
         ) : (
           <div className="col-span-5 text-center py-10 text-gray-400 text-sm">
             {showOnlyMissing
