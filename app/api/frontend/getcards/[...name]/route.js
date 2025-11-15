@@ -35,7 +35,8 @@ export async function GET(req) {
     // 🔄 Background refresh — doesn't block user
     (async () => {
       try {
-        const fresh = await sql`SELECT * FROM "cards" WHERE set_id = ${id}`;
+        const fresh =
+          await sql`SELECT * FROM "cards" WHERE set_id = ${id} ORDER BY id DESC`;
         cache.set(id, fresh);
         cacheTimes.set(id, Date.now());
       } catch (err) {
@@ -52,7 +53,8 @@ export async function GET(req) {
     }
 
     // ❄️ If no cache yet (first request), fetch directly
-    const rows = await sql`SELECT * FROM "cards" WHERE set_id = ${id}`;
+    const rows =
+      await sql`SELECT * FROM "cards" WHERE set_id = ${id} ORDER BY id DESC`;
     cache.set(id, rows);
     cacheTimes.set(id, now);
 

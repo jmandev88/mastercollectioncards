@@ -137,7 +137,7 @@ export default function CardBrowser({
           </button>
 
           {open && (
-            <div className="absolute left-0 mt-2 w-46 bg-white border border-gray-200 rounded-md shadow-lg z-20 overflow-hidden">
+            <div className="absolute left-0 mt-2 w-46 bg-white border border-gray-200 rounded-md shadow-lg z-20 h-120 overflow-auto">
               {sets.map((set) => {
                 const isActive = currentSet === set.set_id;
                 return (
